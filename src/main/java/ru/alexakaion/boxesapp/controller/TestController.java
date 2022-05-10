@@ -1,21 +1,25 @@
 package ru.alexakaion.boxesapp.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-import ru.alexakaion.boxesapp.service.BoxSearcher;
+import ru.alexakaion.boxesapp.model.BoxSearcherRequest;
+import ru.alexakaion.boxesapp.service.BoxSearcherService;
 
 import java.util.List;
 import java.util.Map;
 
 @RestController
+@RequiredArgsConstructor
 public class TestController {
-    @Autowired
-    private BoxSearcher boxSearcher;
+    private final BoxSearcherService boxSearcherService;
 
     @PostMapping("/test")
-    public List<Integer> getBoxIdsWithColor(@RequestBody Map<String, Object> payload) {
-        return boxSearcher.searchBoxByColorInsideBoxes(Integer.parseInt(payload.get("box").toString()), payload.get("color").toString());
+    public List<Integer> getBoxIdsWithColor(@RequestBody BoxSearcherRequest request) {
+        return boxSearcherService.searchBoxByColorInsideBoxes(
+                Integer.parseInt(request.getBox()),
+                request.getColor()
+        );
     }
 }

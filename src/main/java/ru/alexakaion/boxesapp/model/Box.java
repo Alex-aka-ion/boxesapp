@@ -1,37 +1,26 @@
 package ru.alexakaion.boxesapp.model;
 
 import lombok.*;
-import org.hibernate.Hibernate;
+import org.springframework.data.annotation.Transient;
 
+import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
-import java.util.Objects;
+import javax.xml.bind.annotation.*;
+import java.util.ArrayList;
+import java.util.List;
 
-@Getter
-@Setter
-@ToString
-@AllArgsConstructor
-@NoArgsConstructor
+@Data
 @Entity
+@NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "box")
 public class Box {
     @Id
     @NonNull
+    @XmlAttribute(name="id")
     private Integer id;
 
     private Integer containedIn;
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
-        Box box = (Box) o;
-        return Objects.equals(id, box.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return getClass().hashCode();
-    }
 }

@@ -7,7 +7,7 @@ import java.io.FileNotFoundException;
 
 @SpringBootApplication
 public class BoxesappApplication {
-	public static void main(String[] args) throws FileNotFoundException {
-		SpringApplication.run(BoxesappApplication.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(BoxesappApplication.class, args);
+    }
 }

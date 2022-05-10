@@ -9,6 +9,11 @@ import java.util.List;
 
 @Transactional(readOnly = true)
 public interface BoxRepository extends CrudRepository<Box, Integer> {
-    @Query("SELECT b FROM Box b WHERE b.containedIn = :boxId")
-    List<Box> getChildBoxes(Integer boxId);
+    @Query(value = "WITH LINK(ID, CONTAINED_IN) AS \n" +
+            "( SELECT ID, CONTAINED_IN FROM BOX WHERE ID = :startBoxId\n" +
+            "    UNION ALL\n" +
+            "  SELECT S2.ID, S2.CONTAINED_IN FROM LINK S1 INNER JOIN BOX S2 ON S1.ID = S2.CONTAINED_IN)\n" +
+            "SELECT ID, CONTAINED_IN FROM LINK",
+    nativeQuery = true)
+    List<Box> getAllChildBoxesRecursive(Integer startBoxId);
 }
