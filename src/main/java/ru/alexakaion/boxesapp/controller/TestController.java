@@ -4,21 +4,20 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-import ru.alexakaion.boxesapp.model.BoxSearcherRequest;
-import ru.alexakaion.boxesapp.service.BoxSearcherService;
+import ru.alexakaion.boxesapp.model.BoxSearchRequest;
+import ru.alexakaion.boxesapp.service.BoxSearchService;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
 public class TestController {
-    private final BoxSearcherService boxSearcherService;
+    private final BoxSearchService boxSearchService;
 
     @PostMapping("/test")
-    public List<Integer> getBoxIdsWithColor(@RequestBody BoxSearcherRequest request) {
-        return boxSearcherService.searchBoxByColorInsideBoxes(
-                Integer.parseInt(request.getBox()),
+    public List<Integer> getBoxIdsWithColor(@RequestBody BoxSearchRequest request) {
+        return boxSearchService.searchBoxByColorInsideBoxes(
+                request.getBox(),
                 request.getColor()
         );
     }

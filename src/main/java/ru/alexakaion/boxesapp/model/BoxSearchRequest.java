@@ -1,6 +1,6 @@
 package ru.alexakaion.boxesapp.model;
 
-import com.sun.istack.NotNull;
+import javax.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -8,9 +8,9 @@ import lombok.Setter;
 @RequiredArgsConstructor
 @Getter
 @Setter
-public class BoxSearcherRequest {
+public class BoxSearchRequest {
     @NotNull
-    private String box;
+    private Integer box;
     @NotNull
     private String color;
 }

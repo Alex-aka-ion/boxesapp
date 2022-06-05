@@ -2,6 +2,7 @@ package ru.alexakaion.boxesapp.model;
 
 import lombok.*;
 
+
 import javax.xml.bind.annotation.*;
 import java.util.ArrayList;
 import java.util.List;

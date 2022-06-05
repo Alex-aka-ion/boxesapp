@@ -1,93 +1,84 @@
 package ru.alexakaion.boxesapp.config;
 
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.boot.autoconfigure.mongo.embedded.EmbeddedMongoProperties;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ResourceUtils;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 import ru.alexakaion.boxesapp.model.*;
 import ru.alexakaion.boxesapp.repository.BoxRepository;
-import ru.alexakaion.boxesapp.repository.CommonRepository;
+import ru.alexakaion.boxesapp.repository.H2BackupRepository;
 import ru.alexakaion.boxesapp.repository.ItemRepository;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Unmarshaller;
 import java.io.File;
-import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
+import java.io.FileNotFoundException;
 import java.util.List;
-import java.util.Objects;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class CustomXmlReader implements CommandLineRunner {
-    private static final Logger LOG = LoggerFactory.getLogger(CustomXmlReader.class);
-
     private final BoxRepository boxRepository;
     private final ItemRepository itemRepository;
-    private final CommonRepository commonRepository;
+    private final H2BackupRepository h2BackupRepository;
 
     @Override
-    public void run(String... args) {
-        List<Box> boxes = new ArrayList<>();
-        List<Item> items = new ArrayList<>();
-
+    public void run(String... args) throws FileNotFoundException {
         if (args.length == 0) {
             throw new IllegalArgumentException("No Parameter with filename in command string");
         }
+        log.debug("filename=" + args[0]);
 
-        File xmlFile = null;
-        try {
-            xmlFile = ResourceUtils.getFile(args[0]);
-        } catch (Exception e) {
-            LOG.error("Can't open file from path: "+args[0], e);
-            System.exit(0);
-        }
+        File xmlFile = ResourceUtils.getFile(args[0]);
 
-        LOG.info("---Start XML reader---");
-        LOG.info("filename=" + args[0]);
+        XmlStorage storage = this.readXml(xmlFile);
 
-        XmlStorage storage = null;
+        this.saveToDatabase(storage);
+
+        h2BackupRepository.makeH2Backup("backup.sql");
+    }
+
+    private void saveToDatabase(XmlStorage storage) {
+        this.saveXmlBoxesAndXmlItems(storage.getXmlBoxes(), null);
+        storage.getXmlItems().forEach(xmlItem -> this.saveXmlItem(xmlItem, null));
+    }
+
+    private XmlStorage readXml(File xmlFile) {
+        log.debug("---Start XML reader---");
+
+        XmlStorage storage;
         try {
             JAXBContext jaxbContext = JAXBContext.newInstance(XmlStorage.class, XmlBox.class, XmlItem.class);
             Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
             storage = (XmlStorage) unmarshaller.unmarshal(xmlFile);
 
-            LOG.info(storage.toString());
-
+            log.debug(storage.toString());
         } catch (Exception e) {
-            LOG.error("Can't parse XML File",e);
-            System.exit(0);
+            log.error("Can't parse XML File!",e);
+            throw new RuntimeException(e);
         }
 
-        LOG.info("---Finish XML reader---");
-
-        this.boxItemSaver(storage.getXmlBoxes(), null);
-        storage.getXmlItems().forEach(xmlItem -> this.itemSaver(xmlItem, null));
-
-        commonRepository.makeH2Backup("backup.sql");
+        log.debug("---Finish XML reader---");
+        return storage;
     }
-
-    private void boxItemSaver(List<XmlBox> xmlBoxes, Integer parentId) {
+    private void saveXmlBoxesAndXmlItems(List<XmlBox> xmlBoxes, Integer parentId) {
         xmlBoxes.forEach(xmlBox -> {
-            this.boxSaver(xmlBox, parentId);
+            this.saveXmlBox(xmlBox, parentId);
 
-            xmlBox.getXmlItems().forEach(xmlItem -> this.itemSaver(xmlItem, xmlBox.getId()));
+            xmlBox.getXmlItems().forEach(xmlItem -> this.saveXmlItem(xmlItem, xmlBox.getId()));
 
-            this.boxItemSaver(xmlBox.getXmlBoxes(), xmlBox.getId());
+            this.saveXmlBoxesAndXmlItems(xmlBox.getXmlBoxes(), xmlBox.getId());
         });
     }
 
-    private void itemSaver(XmlItem xmlItem, Integer parentId) {
+    private void saveXmlItem(XmlItem xmlItem, Integer parentId) {
         Item item = new Item(xmlItem.getId(), parentId, xmlItem.getColor());
         itemRepository.save(item);
     }
 
-    private void boxSaver(XmlBox xmlBox, Integer parentId) {
+    private void saveXmlBox(XmlBox xmlBox, Integer parentId) {
         Box box = new Box(xmlBox.getId(), parentId);
         boxRepository.save(box);
     }

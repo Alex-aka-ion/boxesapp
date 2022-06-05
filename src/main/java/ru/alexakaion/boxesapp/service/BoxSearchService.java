@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class BoxSearcherService {
+public class BoxSearchService {
     private final ItemRepository itemRepository;
     private final BoxRepository boxRepository;
 

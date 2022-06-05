@@ -3,6 +3,6 @@ package ru.alexakaion.boxesapp.repository;
 import org.springframework.transaction.annotation.Transactional;
 
 @Transactional(readOnly = true)
-public interface CommonRepository {
+public interface H2BackupRepository {
     void makeH2Backup(String backupFilename);
 }
